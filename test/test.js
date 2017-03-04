@@ -7,6 +7,8 @@ const Schedule = require('../models/schedule');
 const Candidate = require('../models/candidate');
 const Availability = require('../models/availability');
 
+const assert = require('assert');
+
 describe('/login', () => {
   before(() => {
     passportStub.install(app);
@@ -110,7 +112,41 @@ describe('/schedules/:scheduleId/users/:userId/candidates/:candidateId', () => {
         });
     });
   });
+
+
+  it('本当にデータベースに存在するかどうかのテスト', (done) => {
+    User.upsert({ userId: 0, username: 'testuser' }).then(() => {
+      request(app)
+        .post('/schedules')
+        .send({ scheduleName: 'テスト出欠更新予定1', memo: 'テスト出欠更新メモ1', candidates: 'テスト出欠更新候補1' })
+        .end((err, res) => {
+          const createdSchedulePath = res.headers.location;
+          const scheduleId = createdSchedulePath.split('/schedules/')[1];
+          Candidate.findOne({
+            where: { scheduleId: scheduleId }
+          }).then((candidate) => {
+            // 更新がされることをテスト
+            request(app)
+              .post(`/schedules/${scheduleId}/users/${0}/candidates/${candidate.candidateId}`)
+              .send({ availability: 2 }) // 出席に更新
+              .expect('{"status":"OK","availability":2}')
+              //練習問題の範囲の差分を記述
+              .end((err, res) => {
+                Availability.findAll({
+                  where: { scheduleId: scheduleId }
+                }).then((availabilities) => {
+                  // TODO ここにテストを記述する
+                  assert.equal(availabilities.length, 1);
+                  assert.equal(availabilities[0].availability, 2);
+                  deleteScheduleAggregate(scheduleId, done, err);
+                });
+              });
+          });
+        });
+    });
+  });
 });
+
 
 function deleteScheduleAggregate(scheduleId, done, err) {
   Availability.findAll({

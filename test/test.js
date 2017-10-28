@@ -1,5 +1,6 @@
 'use strict';
 const request = require('supertest');
+const assert = require('assert');
 const app = require('../app');
 const passportStub = require('passport-stub');
 const User = require('../models/user');
@@ -103,9 +104,17 @@ describe('/schedules/:scheduleId/users/:userId/candidates/:candidateId', () => {
             // 更新がされることをテスト
             request(app)
               .post(`/schedules/${scheduleId}/users/${0}/candidates/${candidate.candidateId}`)
-              .send({ availability: 2 }) // 出席に更新
-              .expect('{"status":"OK","availability":2}')
-              .end((err, res) => { deleteScheduleAggregate(scheduleId, done, err); });
+              .send({ availability: 1 }) // 出席に更新
+              .expect('{"status":"OK","availability":1}')
+              .end((err, res) => {
+                Availability.findAll({
+                  where: { scheduleId: scheduleId }
+                }).then((availabilities) => {
+                  assert.equal(availabilities.length, 1);
+                  assert.equal(availabilities[0].availability, 1);
+                  deleteScheduleAggregate(scheduleId, done, err);
+                });
+              });
           });
         });
     });

@@ -6,6 +6,7 @@ const User = require('../models/user');
 const Schedule = require('../models/schedule');
 const Candidate = require('../models/candidate');
 const Availability = require('../models/availability');
+const assert = require('assert');
 
 describe('/login', () => {
   before(() => {
@@ -72,7 +73,7 @@ describe('/schedules', () => {
             .expect(/テスト候補2/)
             .expect(/テスト候補3/)
             .expect(200)
-            .end((err, res) => { deleteScheduleAggregate(createdSchedulePath.split('/schedules/')[1], done, err);});
+            .end((err, res) => { deleteScheduleAggregate(createdSchedulePath.split('/schedules/')[1], done, err); });
         });
     });
   });
@@ -105,7 +106,15 @@ describe('/schedules/:scheduleId/users/:userId/candidates/:candidateId', () => {
               .post(`/schedules/${scheduleId}/users/${0}/candidates/${candidate.candidateId}`)
               .send({ availability: 2 }) // 出席に更新
               .expect('{"status":"OK","availability":2}')
-              .end((err, res) => { deleteScheduleAggregate(scheduleId, done, err); });
+              .end((err, res) => {
+                Availability.findAll({
+                  where: { scheduleId: scheduleId }
+                }).then((availabilities) => {
+                  assert.deepEqual(availabilities.length, 1);
+                  assert.deepEqual(availabilities[0].availability, 2);
+                  deleteScheduleAggregate(scheduleId, done, err);
+                });
+              });
           });
         });
     });

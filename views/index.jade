@@ -1,15 +1,22 @@
+//- layoutを継承して
 extends layout
-
+//- contentブロックを書き換える
 block content
   h1= title
   p Welcome to #{title}
   div
+    //- ユーザーがログインしていれば
     if user
+      //- ログアウトのリンクを表示して
       div
         a(href="/logout") #{user.username} をログアウト
+      //- 新しい予定を作成するフォームへのリンクを貼って
       div
         a(href="/schedules/new") 予定を作る
+      //- これはJSのコード
       - var hasSchedule = schedules.length > 0
+      //- ユーザーが作成した予定が１件以上あれば
+      //- それをテーブルで表示する
       if hasSchedule
         h3 あなたの作った予定一覧
         table(class="table")
@@ -19,8 +26,11 @@ block content
           each schedule in schedules
             tr
               td
+                //- スケジュール名にその内容を表示するリンクを貼る
                 a(href="/schedules/#{schedule.scheduleId}") #{schedule.scheduleName}
+              //- 更新日時
               td #{schedule.updatedAt}
     else
       div
+        //- ユーザーがログインしていなければログイン用リンクを表示する
         a(href="/login") ログイン

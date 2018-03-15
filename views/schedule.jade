@@ -8,7 +8,7 @@ block content
   table
     tr
       th 予定
-      each user in users
+      each user in users        
         th #{user.username}
     each candidate in candidates
       tr
@@ -17,7 +17,9 @@ block content
           - var availability = availabilityMapMap.get(user.userId).get(candidate.candidateId)
           - var availabilityLabels = ['欠', '？', '出'];
           td
+            //- 自分自身の予定はボタンを表示し
             if user.isSelf
+              //- availability は 0が欠席、1が不明、2が出席を表す
               button #{availabilityLabels[availability]}
             else
               p #{availabilityLabels[availability]}

@@ -1,5 +1,6 @@
 'use strict';
 const request = require('supertest');
+const assert = require('assert');
 const app = require('../app');
 const passportStub = require('passport-stub');
 const User = require('../models/user');
@@ -18,7 +19,8 @@ describe('/login', () => {
     passportStub.uninstall(app);
   });
 
-  it('ログインのためのリンクが含まれる', (done) => {
+  it('ログインのためのリンクが含まれる', function(done) {
+    this.timeout(5000);
     request(app)
       .get('/login')
       .expect('Content-Type', 'text/html; charset=utf-8')
@@ -62,7 +64,7 @@ describe('/schedules', () => {
         .expect('Location', /schedules/)
         .expect(302)
         .end((err, res) => {
-          const createdSchedulePath = res.headers.location;
+          let createdSchedulePath = res.headers.location;
           request(app)
             .get(createdSchedulePath)
             .expect(/テスト予定1/)
@@ -71,7 +73,6 @@ describe('/schedules', () => {
             .expect(/テスト候補1/)
             .expect(/テスト候補2/)
             .expect(/テスト候補3/)
-            .expect(200)
             .end((err, res) => { deleteScheduleAggregate(createdSchedulePath.split('/schedules/')[1], done, err);});
         });
     });
@@ -103,9 +104,17 @@ describe('/schedules/:scheduleId/users/:userId/candidates/:candidateId', () => {
             // 更新がされることをテスト
             request(app)
               .post(`/schedules/${scheduleId}/users/${0}/candidates/${candidate.candidateId}`)
-              .send({ availability: 2 }) // 出席に更新
+              .send({ availability: 2}) //出席に更新
               .expect('{"status":"OK","availability":2}')
-              .end((err, res) => { deleteScheduleAggregate(scheduleId, done, err); });
+              .end((err, res) => { 
+                Availability.findAll({
+                  where: { scheduleId: scheduleId }
+                }).then((availabilities) => {
+                  // データベースにも保存されているかをテスト
+                  assert.equal(availabilities.length, 1);
+                  assert.equal(availabilities[0].availability, 2);
+                  deleteScheduleAggregate(scheduleId, done, err); });
+                });
           });
         });
     });

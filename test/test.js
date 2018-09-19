@@ -111,6 +111,7 @@ describe('/schedules/:scheduleId/users/:userId/candidates/:candidateId', () => {
                   where: { scheduleId: scheduleId }
                 }).then((availabilities) => {
                   assert.equal(availabilities.length, 1);
+                  assert.equal(availabilities[0].availability, 2);
                   deleteScheduleAggregate(scheduleId, done, err);
                 });
               });

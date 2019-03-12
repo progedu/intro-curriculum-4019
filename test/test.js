@@ -72,7 +72,7 @@ describe('/schedules', () => {
             .expect(/テスト候補2/)
             .expect(/テスト候補3/)
             .expect(200)
-            .end((err, res) => { deleteScheduleAggregate(createdSchedulePath.split('/schedules/')[1], done, err);});
+            .end((err, res) => { deleteScheduleAggregate(createdSchedulePath.split('/schedules/')[1], done, err); });
         });
     });
   });
@@ -123,7 +123,7 @@ function deleteScheduleAggregate(scheduleId, done, err) {
       }).then((candidates) => {
         const promises = candidates.map((c) => { return c.destroy(); });
         Promise.all(promises).then(() => {
-          Schedule.findById(scheduleId).then((s) => { s.destroy(); });
+          Schedule.findByPk(scheduleId).then((s) => { s.destroy(); });
           if (err) return done(err);
           done();
         });

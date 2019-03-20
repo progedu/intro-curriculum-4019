@@ -1,12 +1,13 @@
 'use strict';
 const request = require('supertest');
+const assert = require('assert');
 const app = require('../app');
 const passportStub = require('passport-stub');
 const User = require('../models/user');
 const Schedule = require('../models/schedule');
 const Candidate = require('../models/candidate');
 const Availability = require('../models/availability');
-const assert = require('assert');
+
 
 describe('/login', () => {
   before(() => {
@@ -110,7 +111,8 @@ describe('/schedules/:scheduleId/users/:userId/candidates/:candidateId', () => {
                 Availability.findAll({
                   where: { scheduleId: scheduleId }
                 }).then((availabilities) => {
-                  // TODO ここにテストを記述する
+                  assert.equal(availabilities.length, 1);
+                  assert.equal(availabilities[0].availability, 2);
                   deleteScheduleAggregate(scheduleId, done, err);
                 });
               });

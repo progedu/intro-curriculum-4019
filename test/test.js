@@ -1,13 +1,12 @@
 'use strict';
 const request = require('supertest');
-const assert = require('assert');
 const app = require('../app');
 const passportStub = require('passport-stub');
 const User = require('../models/user');
 const Schedule = require('../models/schedule');
 const Candidate = require('../models/candidate');
 const Availability = require('../models/availability');
-
+const assert = require('assert');
 
 describe('/login', () => {
   before(() => {
@@ -79,11 +78,13 @@ describe('/schedules', () => {
     });
   });
 });
+
 describe('/schedules/:scheduleId/users/:userId/candidates/:candidateId', () => {
   before(() => {
     passportStub.install(app);
     passportStub.login({ id: 0, username: 'testuser' });
   });
+
   after(() => {
     passportStub.logout();
     passportStub.uninstall(app);
@@ -100,10 +101,9 @@ describe('/schedules/:scheduleId/users/:userId/candidates/:candidateId', () => {
           Candidate.findOne({
             where: { scheduleId: scheduleId }
           }).then((candidate) => {
-            //更新されることをテスト
-            const userId = 0;
+            // 更新がされることをテスト
             request(app)
-              .post(`/schedules/${scheduleId}/users/${userId}/candidates/${candidate.candidateId}`)
+              .post(`/schedules/${scheduleId}/users/${0}/candidates/${candidate.candidateId}`)
               .send({ availability: 2 }) // 出席に更新
               .expect('{"status":"OK","availability":2}')
               .end((err, res) => {
@@ -132,12 +132,9 @@ function deleteScheduleAggregate(scheduleId, done, err) {
       }).then((candidates) => {
         const promises = candidates.map((c) => { return c.destroy(); });
         Promise.all(promises).then(() => {
-          Schedule.findByPk(scheduleId).then((s) => {
-            s.destroy().then(() => {
-              if (err) return done(err);
-              done();
-            });
-          });
+          Schedule.findById(scheduleId).then((s) => { s.destroy(); });
+          if (err) return done(err);
+          done();
         });
       });
     });

@@ -110,8 +110,20 @@ describe('/schedules/:scheduleId/users/:userId/candidates/:candidateId', () => {
                 Availability.findAll({
                   where:{scheduleId: scheduleId}
                 }).then((availabilities) => {
+                  availabilities.filter((a) => {
+                    return (a.userId === 0 && candidate.candidateId === a.candidateId);
+                  }).forEach((t) => {
+                    assert.equal(t.availability, 2);
+                  })
+                /*
+                availabilities.forEach((a) =>{
+                  if(a.userId == 0 && candidate.candidateId == a.candidateId){
+                    assert.equal(a.availability, 2);
+                  }
+                })
+                */
                 assert.equal(availabilities.length, 1);
-                assert.equal(availabilities[0].availability, 2);
+                //assert.equal(availabilities[0].availability, 2);
                 deleteScheduleAggregate(scheduleId, done, err); 
                 });
               });

@@ -113,6 +113,7 @@ describe('/schedules/:scheduleId/users/:userId/candidates/:candidateId', () => {
                     // assert("abc".includes("e") )
                     availabilities.forEach((availability) => {
                       if (candidate.candidateId ==availability.candidateId || availability.userId =='testuser' ){
+                        console.log(availability.availability)
                         assert.equal( availability.availability, 2 )
                       }
                       })  

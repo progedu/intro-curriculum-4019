@@ -1,4 +1,8 @@
+// 実は先ほど実装した「出欠が更新できる」のテストは、 Web API のインタフェースが返した結果をそのまま信用して、結果を判断しています。
+// 本当にデータベースに保存されたかどうかはテストされていません。
+// 本当にデータベースに存在するかどうかのテストも追加してみましょう。
 'use strict';
+const assert = require('assert');//Node.js の assert モジュール を読み込む
 const request = require('supertest');
 const app = require('../app');
 const passportStub = require('passport-stub');
@@ -105,8 +109,22 @@ describe('/schedules/:scheduleId/users/:userId/candidates/:candidateId', () => {
               .post(`/schedules/${scheduleId}/users/${0}/candidates/${candidate.candidateId}`)
               .send({ availability: 2 }) // 出席に更新
               .expect('{"status":"OK","availability":2}')
-              .end((err, res) => { deleteScheduleAggregate(scheduleId, done, err); });
+              // .end((err, res) => { deleteScheduleAggregate(scheduleId, done, err); });
+              .end((err, res) => {
+                Availability.findAll({//Availability.findAll 関数はデータベースから where で条件を指定した全ての出欠を取得します。
+                  where: { scheduleId: scheduleId }
+                }).then((availabilities) => {//また結果オブジェクトの then 関数を呼び出すことで、そこで渡す無名関数の引数 availabilities には、 出欠のモデルである models/availability.js で定義したモデルの配列が渡されます。
+                  
+                  // TODO ここにテストを記述する↓以下
+                  //availabilities の配列の長さを検証し、その内容も検証する実装を assert モジュールを利用して記述
+                  assert.equal(availabilities.length, 1);
+                  assert.equal(availabilities[0].availability, 2);
+
+                  deleteScheduleAggregate(scheduleId, done, err);
+                });
+              });
           });
+          
         });
     });
   });

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "test": "node_modules/mocha/bin/mocha --timeout 10000 --exit"
+    "test": "npx jest --testTimeout=10000 --forceExit"
   },
   "dependencies": {
     "cookie-parser": "~1.4.3",
@@ -14,16 +14,16 @@
     "helmet": "^3.8.2",
     "http-errors": "~1.6.2",
     "morgan": "~1.9.0",
-    "uuid": "^3.3.2",
     "passport": "^0.3.2",
     "passport-github2": "^0.1.9",
     "pg": "^7.4.1",
     "pg-hstore": "^2.3.2",
     "pug": "2.0.0-beta11",
-    "sequelize": "^4.33.4"
+    "sequelize": "^4.33.4",
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "mocha": "^4.0.1",
+    "jest": "25.1.0",
     "passport-stub": "^1.1.1",
     "supertest": "^3.1.0"
   }

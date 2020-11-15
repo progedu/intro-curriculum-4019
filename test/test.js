@@ -6,6 +6,7 @@ const User = require('../models/user');
 const Schedule = require('../models/schedule');
 const Candidate = require('../models/candidate');
 const Availability = require('../models/availability');
+const assert = require('assert');
 
 describe('/login', () => {
   beforeAll(() => {
@@ -75,7 +76,9 @@ describe('/schedules', () => {
             .expect(/テスト候補2/)
             .expect(/テスト候補3/)
             .expect(200)
-            .end((err, res) => { deleteScheduleAggregate(createdSchedulePath.split('/schedules/')[1], done, err);});
+            .end((err, res) => {
+              deleteScheduleAggregate(createdSchedulePath.split('/schedules/')[1], done, err);    // テストで作成した情報を削除する
+          });
         });
     });
   });
@@ -109,7 +112,16 @@ describe('/schedules/:scheduleId/users/:userId/candidates/:candidateId', () => {
               .post(`/schedules/${scheduleId}/users/${userId}/candidates/${candidate.candidateId}`)
               .send({ availability: 2 }) // 出席に更新
               .expect('{"status":"OK","availability":2}')
-              .end((err, res) => { deleteScheduleAggregate(scheduleId, done, err); });
+              .end((err, res) => {
+                Availability.findAll({
+                  where: {scheduleId: scheduleId}
+                }).then(availabilities => {
+                  // 予定が DB に保存されているかをテスト
+                  assert.deepStrictEqual(availabilities.length, 1);    // availability が更新されたかどうかは配列の長さが増えたかでチェック
+                  assert.deepStrictEqual(availabilities[0].availability, 2);    // 出席で DB が更新されたかチェック
+                  deleteScheduleAggregate(scheduleId, done, err);
+                })
+              });
           });
         });
     });

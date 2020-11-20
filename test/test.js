@@ -6,6 +6,7 @@ const User = require('../models/user');
 const Schedule = require('../models/schedule');
 const Candidate = require('../models/candidate');
 const Availability = require('../models/availability');
+const assert = require('assert');
 
 describe('/login', () => {
   beforeAll(() => {
@@ -75,7 +76,12 @@ describe('/schedules', () => {
             .expect(/テスト候補2/)
             .expect(/テスト候補3/)
             .expect(200)
-            .end((err, res) => { deleteScheduleAggregate(createdSchedulePath.split('/schedules/')[1], done, err);});
+            .end((err, res) => {
+              deleteScheduleAggregate(
+                createdSchedulePath.split('/schedules/')[1], 
+                done, err
+                );
+              });
         });
     });
   });
@@ -96,7 +102,11 @@ describe('/schedules/:scheduleId/users/:userId/candidates/:candidateId', () => {
     User.upsert({ userId: 0, username: 'testuser' }).then(() => {
       request(app)
         .post('/schedules')
-        .send({ scheduleName: 'テスト出欠更新予定1', memo: 'テスト出欠更新メモ1', candidates: 'テスト出欠更新候補1' })
+        .send({
+          scheduleName: 'テスト出欠更新予定1', 
+          memo: 'テスト出欠更新メモ1', 
+          candidates: 'テスト出欠更新候補1' 
+        })
         .end((err, res) => {
           const createdSchedulePath = res.headers.location;
           const scheduleId = createdSchedulePath.split('/schedules/')[1];
@@ -109,13 +119,26 @@ describe('/schedules/:scheduleId/users/:userId/candidates/:candidateId', () => {
               .post(`/schedules/${scheduleId}/users/${userId}/candidates/${candidate.candidateId}`)
               .send({ availability: 2 }) // 出席に更新
               .expect('{"status":"OK","availability":2}')
-              .end((err, res) => { deleteScheduleAggregate(scheduleId, done, err); });
+              .end((err, res) => {
+                Availability.findAll({
+                  where: { scheduleId: scheduleId }
+                }).then((availabilities) => {
+                  availabilities.filter(availability => {
+                    return availability.candidateId == candidate.candidateId
+                    && availability.userId == 'testuser'
+                  }).forEach((availability)=> {
+                        assert.strictEqual(availability.availability,2);
+                  });
+                  console.log(toString(availabilities));
+                  //TO DO 更新されることをテスト
+                  deleteScheduleAggregate(scheduleId, done, err);
+                });
+              });
           });
         });
     });
   });
-});
-  
+});  
 function deleteScheduleAggregate(scheduleId, done, err) {
   Availability.findAll({
     where: { scheduleId: scheduleId }

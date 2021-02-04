@@ -118,7 +118,6 @@ describe('/schedules/:scheduleId/users/:userId/candidates/:candidateId', () => {
                   assert.strictEqual(availabilities[0].availability, 2);
                   deleteScheduleAggregate(scheduleId, done, err);
                 });
-                deleteScheduleAggregate(scheduleId, done, err);
               });
           });
         });

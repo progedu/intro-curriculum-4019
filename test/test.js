@@ -6,6 +6,8 @@ const User = require('../models/user');
 const Schedule = require('../models/schedule');
 const Candidate = require('../models/candidate');
 const Availability = require('../models/availability');
+//1 出欠更新DB保存
+const assert = require('assert');
 
 describe('/login', () => {
   beforeAll(() => {
@@ -109,8 +111,23 @@ describe('/schedules/:scheduleId/users/:userId/candidates/:candidateId', () => {
               .post(`/schedules/${scheduleId}/users/${userId}/candidates/${candidate.candidateId}`)
               .send({ availability: 2 }) // 出席に更新
               .expect('{"status":"OK","availability":2}')
-              .end((err, res) => { deleteScheduleAggregate(scheduleId, done, err); });
-          });
+              ////予定に関連する出欠情報が 1 つあることと、 その内容が更新された 2 であることをテストしています。
+              //###################################
+              //1 出欠更新DB保存
+              //.end((err, res) => { deleteScheduleAggregate(scheduleId, done, err); });
+              .end((err, res) => {
+                Availability.findAll({
+                  where: { scheduleId: scheduleId }
+                }).then((availabilities) => {
+                  // TODO ここにテストを記述する
+                  deleteScheduleAggregate(scheduleId, done, err);
+                });
+              });
+              //Availability.findAll 関数はデータベースから where で条件を指定した全ての出欠を取得します。
+              // また結果オブジェクトの then 関数を呼び出すことで、そこで渡す無名関数の引数 availabilities には、 出欠のモデルである models/availability.js で定義したモデルの配列が渡されます。
+              //###########################
+              
+            });
         });
     });
   });
